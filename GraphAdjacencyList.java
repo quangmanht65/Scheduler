@@ -41,6 +41,16 @@ public class GraphAdjacencyList implements GraphInterface {
         return null;
     }
 
+    public Map<Integer, Subject> getSubjects() {
+        Map<Integer, Subject> map = new HashMap<>();
+        int i = 0;
+
+        for (Subject subject : subjectSet()) {
+            map.put(i++, subject);
+        }
+
+        return map;
+    }
 
     @Override
     public Relation getRelation(Subject prerequisite, Subject subject) {
@@ -60,7 +70,7 @@ public class GraphAdjacencyList implements GraphInterface {
             if (get(subject).size() > 0) relations.put(subject, get(subject));
         }
 
-        System.out.println("\n" + numRelations + " relations");
+//        System.out.println("\n" + numRelations + " relations");
         return relations;
     }
 
