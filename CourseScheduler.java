@@ -1,46 +1,94 @@
 package hw8_vuquangmanh_20000250;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 public class CourseScheduler {
     public static void main(String[] args) {
         GraphAdjacencyList graph = readFile("C:\\Users\\admin\\IdeaProjects\\des\\src\\hw8_vuquangmanh_20000250\\Subjects.txt");
-        System.out.println("Graph: ");
-        graph.printGraph();
-        System.out.println("\n--------------------------------------------------------");
-        System.out.println("Relations: ");
+        assert graph != null;
+//        System.out.println("Graph: ");
+//        graph.printGraph();
+//        System.out.println("\n--------------------------------------------------------");
+//        System.out.println("Relations: ");
         graph.printRelations();
+
+//        System.out.println(graph.getSubjects());
+
+
+//        System.out.println(graph.getRelations());
+//        System.out.println(Arrays.toString(graph.getRelations().keySet().toArray()));
+        System.out.println("---------------------------------------------------------------");
+
+        for (Integer integer : graph.getSubjects().keySet()) {
+            System.out.println(integer + " = " + graph.getSubjects().get(integer));
+        }
+        System.out.println("---------------------------------------------------------------");
+        Map<Integer, List<Integer>> convertMap = convertMap(graph.getSubjects(), graph.getRelations());
+        printMap(convertMap);
+
+        System.out.println("---------------------------------------------------------------");
+        for (Integer integer : graph.getSubjects().keySet()) {
+            System.out.println(integer + " = " + graph.getSubjects().get(integer));
+        }
+
+        System.out.println("---------------------------------------------------------------");
+
+        ArrayList<Integer[]> splitRelation = splitNumMap(convertMap);
+
+        for (int i = 0; i < splitRelation.size(); i++) {
+            System.out.println(Arrays.toString(splitRelation.get(i)));
+        }
+
+        System.out.println("---------------------------------------------------------------");
+        System.out.println(Arrays.toString(numSchedule(graph)));
+
+        // output course schedule
+        int count = 0;
+        System.out.println("Course: ");
+        for (Subject subject : courseSchedule(graph)) {
+            if ((count + 1) % 10 == 0) {
+                System.out.println();
+            } else if (count + 1 == courseSchedule(graph).size()) {
+                System.out.println(subject.getId());
+            } else {
+                System.out.print(subject.getId() + " -> ");
+            }
+            count++;
+        }
+
+        /* Output:
+            [0, 4, 15, 17, 18, 21, 23, 24, 28, 29, 33, 35, 37, 43, 3, 26, 1, 30, 12, 7, 10, 20, 41, 8, 36, 31, 34, 9, 39, 38, 19, 11, 27, 13, 16, 5, 14, 22, 32, 2, 42, 25, 40, 6]
+            FLF1107 -> MAT2506 -> PHI1006 -> MAT1060 -> HIS1001 -> MAT4083 -> PHY1103 -> MAT3557 -> GEO1050 ->
+            POL1001 -> MAT2400 -> PHY1100 -> MAT2501 -> PEC1008 -> MAT2317 -> MAT2502 -> MAT2403 -> MAT3500 ->
+            MAT3372 -> MAT3507 -> MAT2503 -> MAT2323 -> MAT2407 -> MAT2034 -> MAT3514 -> MAT3383 -> MAT3385 ->
+            MAT3381 -> MAT3508 -> MAT3379 -> MAT3534 -> MAT3386 -> MAT3389 -> MAT3395 -> MAT2315 -> MAT3148 ->
+            MAT3380 -> MAT3382 -> MAT3562 -> MAT3399
+         */
+
+
+//        System.out.println(graph.getSubjects().get(0));
+//        System.out.println(graph.getSubjects());
     }
 
-    public static ArrayList<Subject> schedule(GraphAdjacencyList graph) {
-        int length = graph.numSubjects();
-        int[] order = new int[length];
-        boolean[] visited = new boolean[length];
+    public static List<Subject> courseSchedule(GraphAdjacencyList graph) {
+        if (graph == null) return null;
 
-        // chọn 1 môn bất kỳ
-        // dfs(subject)
-        // if (visited(subject))
+        List<Subject> course = new ArrayList<>();
+        Integer[] numSchedule = numSchedule(graph);
 
-        // dfs { dfs }
+        for (Integer index : numSchedule) {
+            course.add(graph.getSubjects().get(index));
+        }
 
-        return null;
-    }
-
-    private static int dfs(int index, int at, boolean[] visited, int[] order, GraphAdjacencyList graph) {
-        return index - 1;
+        return course;
     }
 
     public static GraphAdjacencyList readFile(String fileName) {
         try {
             FileReader fileReader = new FileReader(fileName);
             BufferedReader reader = new BufferedReader(fileReader);
-//            ArrayList<Subject> subject = new ArrayList<>();
             String line = reader.readLine();
-//            List<Subject> prerequisite;
             Subject prerequisite;
             GraphAdjacencyList graph = new GraphAdjacencyList();
             ArrayList<String> leftSubject = new ArrayList<>();
@@ -60,6 +108,8 @@ public class CourseScheduler {
                     if (list.length >= 3) {
                         for (int i = 2; i < list.length; i++) {
                             prerequisite = graph.getSubject(list[i]);
+                            // if the prerequisite is some subjects we haven't seen (yet), then we add them to a list
+                            // and relate them to the subject later on.
                             if (prerequisite == null) {
                                 leftSubject.add(list[i]);
                             } else {
@@ -81,7 +131,108 @@ public class CourseScheduler {
         }
     }
 
-    public static void outputFile(String fileName) {}
+    public static void outputFile(String fileName) {
+        try {
+            FileWriter fileWriter = new FileWriter(fileName);
+            BufferedWriter writer = new BufferedWriter(fileWriter);
+        } catch (IOException ioException) {
+            System.out.println(ioException.getMessage());
+        }
+    }
+
+    private static int idOf(Map<Integer, Subject> map, Subject subject) {
+        for (int i = 0; i < map.size(); i++) {
+            if (map.get(i) == subject) return i;
+        }
+
+        return -1;
+    }
+
+    private static Integer[] numSchedule(GraphAdjacencyList graph) {
+        if (graph == null) return null;
+
+        int numSubjects = graph.numSubjects();
+        Integer[] schedule = new Integer[numSubjects];
+        Map<Subject, List<Subject>> relationNum = graph.getRelations();
+        Map<Integer, Subject> subjectNum = graph.getSubjects();
+
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        int[] inDegree = new int[numSubjects];
+        ArrayList<Integer[]> prerequisites = splitNumMap(convertMap(subjectNum, relationNum));
+
+        assert prerequisites != null;
+        for (Integer[] pair : prerequisites) {
+            map.putIfAbsent(pair[1], new ArrayList<>());
+            map.get(pair[1]).add(pair[0]);
+        }
+
+        // insert in-degree of each subject
+        for (int i = 0; i < inDegree.length; i++) {
+            inDegree[i] = graph.inDegree(graph.getSubjects().get(i));
+        }
+
+        Queue<Integer> queue = new LinkedList<>();
+
+        // push the non prerequisite-required subjects
+        for (int i = 0; i < numSubjects; i++) {
+            if (inDegree[i] == 0) {
+                queue.offer(i);
+            }
+        }
+
+        int index = 0;
+
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            schedule[index++] = current;
+
+            if(map.containsKey(current)) {
+                for (int next : map.get(current)) {
+                    inDegree[next]--;
+
+                    if (inDegree[next] == 0) {
+                        queue.offer(next);
+                    }
+                }
+            }
+        }
+
+        return index == numSubjects ? schedule : new Integer[0];
+    }
+
+    private static Map<Integer, List<Integer>> convertMap(Map<Integer, Subject> map, Map<Subject, List<Subject>> relationMap) {
+        Map<Integer, List<Integer>> relationNums = new HashMap<>();
+
+        List<Integer> link;
+        for (Subject prerequisite : relationMap.keySet()) {
+            link = new ArrayList<>();
+            for (Subject subject : relationMap.get(prerequisite)) {
+                link.add(idOf(map, subject));
+            }
+            relationNums.put(idOf(map, prerequisite), link);
+        }
+
+        return relationNums;
+    }
+
+    // subject 1 -> [subject 2, subject 3] will turn to [subject 1, subject 2], [subject 1, subject 3]
+    private static ArrayList<Integer[]> splitNumMap(Map<Integer, List<Integer>> convertMap) {
+        if (convertMap.isEmpty()) return null;
+
+        ArrayList<Integer[]> splitRelations = new ArrayList<>();
+        Integer[] pair;
+
+        for (Integer prerequisite : convertMap.keySet()) {
+            for (Integer subject : convertMap.get(prerequisite)) {
+                pair = new Integer[2];
+                pair[0] = subject;
+                pair[1] = prerequisite;
+                splitRelations.add(pair);
+            }
+        }
+
+        return splitRelations;
+    }
 
     private static void addAllLeft(GraphAdjacencyList graph, ArrayList<String> leftSubjects, String id) {
         int index = leftSubjects.indexOf(id);
@@ -94,11 +245,9 @@ public class CourseScheduler {
         }
     }
 
-    private static void trimInput(String line) {
-        line = line.trim();
-        String[] list = line.split(",");
-        for (int i = 0; i < list.length; i++) {
-            list[i] = list[i].trim();
+    public static void printMap(Map<Integer, List<Integer>> map) {
+        for (Integer index : map.keySet()) {
+            System.out.println(index + " = " + map.get(index));
         }
     }
 }
