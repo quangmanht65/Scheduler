@@ -32,8 +32,8 @@ public class StartGUI extends JFrame {
 		startButton.setVerticalTextPosition(JButton.CENTER);
 
 		// set layout and background color for frame
-		LayoutManager gridBaglayout = new GridBagLayout();
-		frame.setLayout(gridBaglayout);
+		LayoutManager gridBagLayout = new GridBagLayout();
+		frame.setLayout(gridBagLayout);
 		frame.add(panel, new GridBagConstraints());
 		frame.getContentPane().setBackground(Color.ORANGE);
 		
@@ -52,6 +52,7 @@ public class StartGUI extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				new InputGUI();
+				frame.setVisible(false);
 			}
 
 		});
