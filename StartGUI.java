@@ -13,7 +13,7 @@ public class StartGUI extends JFrame {
 	public StartGUI() {
 		setSize(400, 300);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setTitle("Welcome!!!");
+		setTitle("Topological Sort");
 		createUI(this);
 		setVisible(true);
 	}
@@ -32,8 +32,8 @@ public class StartGUI extends JFrame {
 		startButton.setVerticalTextPosition(JButton.CENTER);
 
 		// set layout and background color for frame
-		LayoutManager gridBagLayout = new GridBagLayout();
-		frame.setLayout(gridBagLayout);
+		LayoutManager gridBaglayout = new GridBagLayout();
+		frame.setLayout(gridBaglayout);
 		frame.add(panel, new GridBagConstraints());
 		frame.getContentPane().setBackground(Color.ORANGE);
 		
